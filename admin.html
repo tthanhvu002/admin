@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./reser.css" />
+    <script
+      src="https://kit.fontawesome.com/dc700a75c1.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="./admin.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="form">
+        <div class="input-wrap">
+          <p>Hình ảnh:</p>
+          <input type="file" accept="image/*" class="file" />
+        </div>
+        <div class="input-wrap">
+          <p>Tên tài khoản</p>
+          <input type="text" class="name" />
+        </div>
+        <div class="input-wrap">
+          <select class="type">
+            <option value="hot">Hot</option>
+            <option value="bh">Bán Hàng</option>
+            <option value="game">Game</option>
+            <option value="lt">Livestream</option>
+            <option value="kt">Kiếm Tiền</option>
+            <option value="vlog">Vlog</option>
+          </select>
+        </div>
+        <div class="input-wrap">
+          <p>Giá:</p>
+          <input type="text" class="price" />
+        </div>
+        <img src="" alt="" />
+        <button class="upload-btn">Upload</button>
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Giá</th>
+            <th>Img</th>
+            <th>Loại</th>
+            <th></th>
+          </tr>
+        </table>
+        <div class="update-btn">Update</div>
+      </div>
+      
+    </div>
+  </body>
+  <script src="./admin.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-firestore.js";
+    import {
+      doc,
+      setDoc,
+    } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-firestore.js";
+
+    import {
+      collection,
+      addDoc,
+    } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-firestore.js";
+
+    import { runTransaction } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-firestore.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      onValue,
+      child,
+      get,
+      update,
+      push,
+      remove,
+    } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-database.js";
+    import {
+      getStorage,
+      uploadBytes,
+      ref as sRef,
+      getDownloadURL,
+      uploadBytesResumable,
+      listAll,
+    } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-storage.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLsmC3cnKEAlBpUdd2f3m9elwBSPkd7xw",
+      authDomain: "tiktok-seller.firebaseapp.com",
+      databaseURL: "https://tiktok-seller-default-rtdb.firebaseio.com",
+      projectId: "tiktok-seller",
+      storageBucket: "tiktok-seller.appspot.com",
+      messagingSenderId: "612516155511",
+      appId: "1:612516155511:web:ee9e2ac57691228db4f672",
+      measurementId: "G-4CVFQE4Z5G",
+    };
+    const app = initializeApp(firebaseConfig);
+    const table = document.querySelector("table");
+    const db = getDatabase();
+    const dbRef = ref(getDatabase());
+    const file = document.querySelector(".file");
+    const uploadBtn = document.querySelector(".upload-btn");
+    const storage = getStorage();
+
+    //get data from DOM
+    const img = document.querySelector("img");
+
+    const name = document.querySelector(".name");
+    const price = document.querySelector(".price");
+    const type = document.querySelector(".type");
+
+    let obj = {};
+    let imageUrl = "";
+
+    let hot = [];
+    let bh = [];
+    let game = [];
+    let lt = [];
+    let kt = [];
+    let vlog = [];
+    let all = [];
+
+    file.onchange = (e) => {
+      imageUrl = e.target.files[0];
+    };
+
+    //create id
+    let id;
+    const createId = () => {
+      const listRef = sRef(storage);
+      listAll(listRef).then((res) => {
+        id = res.items.length;
+      });
+    };
+
+    //add
+    /* function writeUserData(obj) {
+      set(ref(db, "users/" + id), obj);
+    } */
+    uploadBtn.onclick = () => {
+      createId();
+
+      if (id !== undefined) {
+        const imageRef = sRef(storage, `${id}`);
+
+        uploadBytes(imageRef, imageUrl).then((snapshot) => {
+          getDownloadURL(snapshot.ref).then((url) => {
+            let img = url;
+            obj = {
+              name: name.value,
+              price: price.value,
+              url: img,
+              type: type.options[type.selectedIndex].value,
+              id: id,
+            };
+            set(
+              ref(db, `${type.options[type.selectedIndex].value}/` + obj.id),
+              obj
+            );
+          });
+        });
+        alert("Upload successful!");
+      } else {
+        alert("Please upload again!");
+      }
+    };
+
+    //read data
+    get(child(dbRef, `users/1`))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          img.src = snapshot.val().profile_picture;
+        } else {
+          console.log("No data available");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    if (all.length <= 0) {
+      //hot accounts
+      const starCountRef = ref(db, "hot/");
+      onValue(starCountRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data !== null) {
+          hot = Object.keys(data).map(function (key) {
+            return snapshot.val()[key];
+          });
+          hot.map((item) => {
+            renderRow(item);
+          });
+        }
+      });
+      //ban hang accounts
+      const starCountRef2 = ref(db, "bh/");
+      onValue(starCountRef2, (snapshot) => {
+        const data = snapshot.val();
+        if (data !== null) {
+          bh = Object.keys(data).map(function (key) {
+            return snapshot.val()[key];
+          });
+          bh.map((item) => {
+            renderRow(item);
+          });
+        }
+      });
+      //game accounts
+      const starCountRef3 = ref(db, "game/");
+      onValue(starCountRef3, (snapshot) => {
+        const data = snapshot.val();
+        if (data !== null) {
+          game = Object.keys(data).map(function (key) {
+            return snapshot.val()[key];
+          });
+          game.map((item) => {
+            renderRow(item);
+          });
+        }
+      });
+      //livestream accounts
+      const starCountRef4 = ref(db, "lt/");
+      onValue(starCountRef4, (snapshot) => {
+        const data = snapshot.val();
+        if (data !== null) {
+          lt = Object.keys(data).map(function (key) {
+            return snapshot.val()[key];
+          });
+          lt.map((item) => {
+            renderRow(item);
+          });
+        }
+      });
+      //kiemtien accounts
+      const starCountRef5 = ref(db, "kt/");
+      onValue(starCountRef5, (snapshot) => {
+        const data = snapshot.val();
+        if (data !== null) {
+          kt = Object.keys(data).map(function (key) {
+            return snapshot.val()[key];
+          });
+          kt.map((item) => {
+            renderRow(item);
+          });
+        }
+      });
+      //vlog account
+      const starCountRef6 = ref(db, "vlog/");
+      onValue(starCountRef6, (snapshot) => {
+        const data = snapshot.val();
+        if (data !== null) {
+          vlog = Object.keys(data).map(function (key) {
+            return snapshot.val()[key];
+          });
+          vlog.map((item) => {
+            renderRow(item);
+          });
+        }
+      });
+
+      hot.map((item) => {});
+    }
+    //upload file
+
+    //xoa
+
+    function getParent(element, selector) {
+      while (element.parentElement) {
+        if (element.parentElement.matches(selector)) {
+          return element.parentElement;
+        } else {
+          element = element.parentElement;
+        }
+      }
+    }
+      
+    const renderRow = (obj) => {
+      const html = `
+          <tr> 
+            <td> ${obj.id} </td>
+            <td contenteditable="true"> ${obj.name} </td>
+            <td contenteditable="true">${obj.price} </td>
+            <td contenteditable="true">${obj.url} </td>
+            <td> ${obj.type} </td>
+            <td class="del">&#10006;</td>
+          </tr>
+        `.trim();
+      console.log("2", typeof obj.id);
+
+      table.innerHTML += html;
+
+      //del btn
+      const delBtn = document.querySelectorAll(".del");
+      console.log(delBtn)
+      let tmp = [];
+      let o = {};
+      Array.from(delBtn).map((item) => {
+        const row = getParent(item, "tr");
+
+        item.onclick = () => {
+          console.log('del btn')
+          Array.from(row.querySelectorAll("td")).map((col, i) => {
+            if (i < 5) {
+              tmp.push(col.innerHTML);
+            }
+          });
+          o = {
+            id: Number(tmp[0]),
+            name: tmp[1],
+            price: tmp[2],
+            url: tmp[3],
+            type: tmp[4].trim(),
+          };
+          remove(ref(db, `${obj.type}/` + obj.id))
+
+          row.remove();
+        };
+      });
+    };
+
+    //update
+    const updateData = (obj) => {
+      const dbref = ref(db);
+      //      update(ref(db,`/${obj.type}/${obj.id}`)) = null;
+      console.log("id: ", Number(obj.id));
+
+      update(ref(db, `${obj.type}/` + Number(obj.id)), obj)
+        .then(() => {
+          alert("Update susccessfully");
+        })
+        .catch((e) => {
+          alert("error:", e);
+        });
+    };
+    const updateBtn = document.querySelector(".update-btn");
+    updateBtn.onclick = () => {
+      const rows = document.querySelectorAll("tr");
+
+      //update vao db
+      const updates = {};
+
+      Array.from(rows).map((row, index) => {
+        let obj = {};
+
+        update(ref(db), updates);
+
+        let tmp = [];
+        if (index >= 1) {
+          console.log("run");
+
+          Array.from(row.querySelectorAll("td")).map((col, i) => {
+            if (i < 5) {
+              tmp.push(col.innerHTML);
+            }
+            console.log("run");
+          });
+          obj = {
+            id: Number(tmp[0]),
+            name: tmp[1],
+            price: tmp[2],
+            url: tmp[3],
+            type: tmp[4].trim(),
+          };
+          //updates[`/${obj.type}/${obj.id}`] = null;
+
+          console.log("1", typeof obj.id);
+          console.log(obj);
+          updateData(obj);
+
+          location.reload();
+        }
+      });
+    };
+  </script>
+</html>

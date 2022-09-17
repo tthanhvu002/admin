@@ -1,0 +1,77 @@
+body{
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+}
+.wrapper{
+    font-size: 20px;
+    padding-bottom: 30px;
+}
+
+.form{
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 2%;
+    margin:50px auto;
+    background-color: rgba(204, 204, 204, 0.53);
+    width: 90%;
+}
+
+.upload-btn{
+    text-transform: uppercase;
+    padding: 10px;
+    cursor: pointer;
+    width: 50%;
+}
+input,select{
+    height: 30px;
+    min-width: 300px;
+    width: 100%;
+}
+.input-wrap input{
+    margin-top: 12px;
+
+}
+input[type='file']{
+    transform: translateX(21%);
+}
+
+
+table{
+    padding: 5%;
+    width: 100%;
+    
+}
+th,td{
+    font-size: 16px;
+    text-align: left;
+    padding: 20px;
+}
+th{
+    max-width: 15%;
+
+}
+
+td:last-child{
+    cursor: pointer;
+}
+
+.update-btn{
+    justify-content: center;
+    margin: 0 auto;
+    width: 100%;
+    width: 200px;
+    padding: 10px ;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    background-color: brown;
+    transition: 0.1s ease;
+}
+
+.update-btn:active{
+    filter: brightness(90%);
+}
